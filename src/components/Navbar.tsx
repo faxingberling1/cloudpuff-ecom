@@ -2,15 +2,23 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useSound } from '@/context/SoundContext';
 import { useTheme } from '@/context/ThemeContext';
 
 export const Navbar: React.FC = () => {
+  const pathname = usePathname();
   const { totalCount, setIsCartOpen, wishlist } = useCart();
   const { muted, toggleSound, playPop, playChime } = useSound();
   const { isNightMode, toggleNightMode, isLullabyPlaying, toggleLullaby } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isShopActive = pathname === '/' || pathname.startsWith('/product');
+  const isStudioActive = pathname === '/customizer';
+  const isGameActive = pathname === '/game';
+  const isOrdersActive = pathname === '/orders';
+  const isWishlistActive = pathname === '/wishlist';
 
   const handleLullabyToggle = () => {
     if (isLullabyPlaying) {
@@ -41,31 +49,51 @@ export const Navbar: React.FC = () => {
         {/* Navigation Links */}
         <ul className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`} id="nav-links">
           <li>
-            <Link href="/#shop-section" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="/#shop-section"
+              className={`nav-link ${isShopActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <span>Shop</span>
               <span>🍓</span>
             </Link>
           </li>
           <li>
-            <Link href="/customizer" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="/customizer"
+              className={`nav-link ${isStudioActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <span>Studio</span>
               <span>🎨</span>
             </Link>
           </li>
           <li>
-            <Link href="/game" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="/game"
+              className={`nav-link ${isGameActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <span>Cloud Hop</span>
               <span>🎮</span>
             </Link>
           </li>
           <li>
-            <Link href="/orders" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="/orders"
+              className={`nav-link ${isOrdersActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <span>Orders</span>
               <span>📖</span>
             </Link>
           </li>
           <li>
-            <Link href="/wishlist" className="nav-link" onClick={() => setMobileMenuOpen(false)}>
+            <Link
+              href="/wishlist"
+              className={`nav-link ${isWishlistActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <span>Wishlist</span>
               <span>💖 {wishlist.length > 0 ? `(${wishlist.length})` : ''}</span>
             </Link>
@@ -110,7 +138,7 @@ export const Navbar: React.FC = () => {
           {/* Wishlist Button */}
           <Link
             href="/wishlist"
-            className="action-pill-btn wishlist-nav-btn"
+            className={`action-pill-btn wishlist-nav-btn ${isWishlistActive ? 'active' : ''}`}
             title="View saved plushies"
           >
             <span>💖</span>
