@@ -4,6 +4,7 @@ import './globals.css';
 import { SoundProvider } from '@/context/SoundContext';
 import { CartProvider } from '@/context/CartContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { ConfettiCanvas } from '@/components/ConfettiCanvas';
 import { ToastContainer } from '@/components/ToastContainer';
 import { CartDrawer } from '@/components/CartDrawer';
@@ -41,21 +42,23 @@ export default function RootLayout({
         <ThemeProvider>
           <SoundProvider>
             <CartProvider>
-              {/* Floating Background Ambient Particles */}
-              <div className="floating-decor" aria-hidden="true">
-                <div className="decor-item decor-star-1">✨</div>
-                <div className="decor-item decor-star-2">🌸</div>
-                <div className="decor-item decor-star-3">⭐</div>
-                <div className="decor-item decor-star-4">💖</div>
-                <div className="decor-item decor-cloud-1">☁️</div>
-                <div className="decor-item decor-cloud-2">☁️</div>
-              </div>
+              <AuthProvider>
+                {/* Floating Background Ambient Particles */}
+                <div className="floating-decor" aria-hidden="true">
+                  <div className="decor-item decor-star-1">✨</div>
+                  <div className="decor-item decor-star-2">🌸</div>
+                  <div className="decor-item decor-star-3">⭐</div>
+                  <div className="decor-item decor-star-4">💖</div>
+                  <div className="decor-item decor-cloud-1">☁️</div>
+                  <div className="decor-item decor-cloud-2">☁️</div>
+                </div>
 
-              {children}
+                {children}
 
-              <ToastContainer />
-              <ConfettiCanvas />
-              <CartDrawer />
+                <ToastContainer />
+                <ConfettiCanvas />
+                <CartDrawer />
+              </AuthProvider>
             </CartProvider>
           </SoundProvider>
         </ThemeProvider>

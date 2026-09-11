@@ -6,9 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useSound } from '@/context/SoundContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
+  const { user, isLoggedIn } = useAuth();
   const { totalCount, setIsCartOpen, wishlist } = useCart();
   const { muted, toggleSound, playPop, playChime } = useSound();
   const { isNightMode, toggleNightMode, isLullabyPlaying, toggleLullaby } = useTheme();
@@ -19,6 +21,7 @@ export const Navbar: React.FC = () => {
   const isGameActive = pathname === '/game';
   const isOrdersActive = pathname === '/orders';
   const isWishlistActive = pathname === '/wishlist';
+  const isAuthActive = pathname === '/login';
 
   const handleLullabyToggle = () => {
     if (isLullabyPlaying) {
@@ -124,6 +127,17 @@ export const Navbar: React.FC = () => {
             <span>{isLullabyPlaying ? '✨🎶' : muted ? '🔇' : '💤'}</span>
             <span>{isLullabyPlaying ? 'Lullaby On' : muted ? 'Muted' : 'Lullaby'}</span>
           </button>
+
+          {/* User Profile / Sign In */}
+          <Link
+            href="/login"
+            className={`action-pill-btn user-nav-btn ${isAuthActive ? 'active' : ''}`}
+            title={isLoggedIn && user ? `Signed in as ${user.name}` : 'Sign In or Create Account'}
+            onClick={playPop}
+          >
+            <span>{isLoggedIn && user ? user.avatar || '🧸' : '👤'}</span>
+            <span>{isLoggedIn && user ? user.name.split(' ')[0] : 'Sign In'}</span>
+          </Link>
 
           {/* Wishlist Button */}
           <Link
