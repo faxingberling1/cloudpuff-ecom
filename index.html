@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudPuff Plushies ✨ — Super Squishy Emotional Support Friends</title>
+  <meta name="description" content="Adopt hyper-squishable, handcrafted emotional support plushies designed to melt away stress. 100% cuddle-ready with cloud-grade softness!">
+  
+  <!-- Google Fonts: Fredoka & Nunito -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧸</text></svg>">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Floating Background Decorations -->
+  <div class="floating-decor" aria-hidden="true">
+    <div class="decor-item decor-star-1">✨</div>
+    <div class="decor-item decor-star-2">🌸</div>
+    <div class="decor-item decor-star-3">⭐</div>
+    <div class="decor-item decor-star-4">💖</div>
+    <div class="decor-item decor-cloud-1">☁️</div>
+    <div class="decor-item decor-cloud-2">☁️</div>
+  </div>
+
+  <!-- Announcement Bar -->
+  <div class="announcement-bar">
+    <div class="announcement-content">
+      <span class="announcement-badge">Fresh Drop 🍓</span>
+      <span>Free Worldwide Cuddle Shipping on orders over $45! Code: <strong>CLOUDLOVE</strong> for mystery stickers!</span>
+    </div>
+  </div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <!-- Brand Logo -->
+      <a href="#" class="brand-logo" id="nav-brand-logo">
+        <span class="logo-icon-wrap">🧸</span>
+        <span class="brand-name">CloudPuff</span>
+      </a>
+
+      <!-- Nav Links -->
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#shop-section" class="nav-link active"><span>Shop Plushies</span> <span>🍓</span></a></li>
+        <li><a href="#mood-section" class="nav-link"><span>Mood Matcher</span> <span>🔮</span></a></li>
+        <li><a href="#promise-section" class="nav-link"><span>Squish Promise</span> <span>☁️</span></a></li>
+        <li><a href="#reviews-section" class="nav-link"><span>Happy Snugglers</span> <span>⭐</span></a></li>
+      </ul>
+
+      <!-- Action Buttons -->
+      <div class="nav-actions">
+        <!-- Audio SFX Toggle Button -->
+        <button class="action-pill-btn sound-toggle-btn" id="sound-toggle-btn" title="Toggle cute sound effects">
+          <span>🔊</span>
+          <span>Sound: On</span>
+        </button>
+
+        <!-- Cart Drawer Button -->
+        <button class="action-pill-btn cart-btn" id="header-cart-btn" onclick="openCart()">
+          <span>🛒</span>
+          <span>Basket</span>
+          <span class="cart-badge" id="cart-badge">0</span>
+        </button>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle navigation menu">
+          ☰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <!-- Left: Headline & CTAs -->
+        <div class="hero-content">
+          <div class="hero-tag">
+            <span>🍓 Hand-Stitched With Pure Love</span>
+          </div>
+          <h1 class="hero-title">
+            Where Every Hug Feels Like <span class="highlight">A Warm Cloud</span> ✨
+          </h1>
+          <p class="hero-desc">
+            Artisan emotional support companions crafted with hyper-resilient cloud polyfill and buttery velvet fabrics. Ready to soothe anxious days and brighten your world.
+          </p>
+
+          <div class="hero-cta-group">
+            <button class="btn-primary" onclick="scrollToShop()">
+              Adopt a Plushie Now 🍓
+            </button>
+            <a href="#mood-section" class="btn-secondary">
+              Find My Soul-Plushie 🔮
+            </a>
+          </div>
+
+          <!-- Hero Trust Metrics -->
+          <div class="hero-stats">
+            <div class="stat-item">
+              <span class="stat-value">50,000+</span>
+              <span class="stat-label">Happy Cuddlers</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">4.9 / 5 ⭐</span>
+              <span class="stat-label">Average Hug Rating</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">100%</span>
+              <span class="stat-label">Hypoallergenic & Safe</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Interactive Hero Mascot Stage -->
+        <div class="hero-visual">
+          <!-- Floating Badges -->
+          <div class="badge-floating badge-float-1">
+            <span>🍓</span>
+            <span>Strawberry Scented</span>
+          </div>
+          <div class="badge-floating badge-float-2">
+            <span>⭐</span>
+            <span>9.9 / 10 Squish Factor</span>
+          </div>
+          <div class="badge-floating badge-float-3">
+            <span>👑 #1 Best Seller</span>
+          </div>
+
+          <!-- Interactive Squishable Hero Card -->
+          <div class="hero-card-stage" id="hero-stage-card" title="Click to Squish Pip!">
+            <div class="hero-img-wrap">
+              <img src="assets/hero.jpg" alt="Pip the Strawberry Bunny Plushie" class="hero-img">
+              <div class="squish-hint">
+                <span>👉 Click to Squish Me!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Plushie Mood Matcher Section -->
+    <section class="mood-matcher-section" id="mood-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle-pill">✨ Instant Soulmate Quiz</span>
+          <h2 class="section-title">What’s Your Vibe Today? 🧸</h2>
+          <p class="section-desc">Pick your current feeling and let our magical cuddle radar match you with your ideal emotional support companion.</p>
+        </div>
+
+        <div class="mood-card-box">
+          <!-- Mood Selection Buttons -->
+          <div class="mood-pills-row">
+            <button class="mood-btn active" data-mood="sleepy">
+              <span>😴</span> Sleepy & Cozy
+            </button>
+            <button class="mood-btn" data-mood="hug">
+              <span>🥺</span> Needs A Big Hug
+            </button>
+            <button class="mood-btn" data-mood="zen">
+              <span>🍵</span> Chill & Zen
+            </button>
+            <button class="mood-btn" data-mood="chaotic">
+              <span>⚡</span> Chaotic Sweetheart
+            </button>
+            <button class="mood-btn" data-mood="dreamy">
+              <span>🍓</span> Sweet & Dreamy
+            </button>
+          </div>
+
+          <!-- Dynamic Result Display Container -->
+          <div class="mood-result-display" id="mood-result-display">
+            <!-- Dynamically injected via app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Catalog Section -->
+    <section class="products-section" id="shop-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle-pill">🌸 Ready For Adoption</span>
+          <h2 class="section-title">Meet the CloudPuff Squad</h2>
+          <p class="section-desc">Each plush friend arrives with their personalized Adoption Certificate, secret collectible sticker sheet, and endless snuggles.</p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-bar">
+          <button class="filter-btn active" data-category="all">All Cuties (6)</button>
+          <button class="filter-btn" data-category="kawaii">Kawaii Classics 🍓</button>
+          <button class="filter-btn" data-category="dream">Dream Paws 🐾</button>
+          <button class="filter-btn" data-category="sea">Sea Cuties 🌊</button>
+          <button class="filter-btn" data-category="prehistoric">Prehistoric Puffs 🦕</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="products-grid" id="products-grid">
+          <!-- Cards injected via app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CloudPuff Quality & Promise Section -->
+    <section class="promise-section" id="promise-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle-pill">🛡️ The Cuddle Standard</span>
+          <h2 class="section-title">Why CloudPuff Plushies?</h2>
+          <p class="section-desc">We spent two years perfecting the exact ratio of fluffiness, bounce-back resilience, and velvet texture.</p>
+        </div>
+
+        <div class="promise-grid">
+          <div class="promise-card">
+            <div class="promise-icon-wrap icon-pink">☁️</div>
+            <h3 class="promise-title">Never-Go-Flat Polyfill</h3>
+            <p class="promise-desc">Custom high-density memory cloud-fill that bounces back to perfect round plumpness every single cuddle.</p>
+          </div>
+          <div class="promise-card">
+            <div class="promise-icon-wrap icon-yellow">🧼</div>
+            <h3 class="promise-title">Machine Washable Fluff</h3>
+            <p class="promise-desc">Accidents happen! Pop them into a gentle cold wash and dry on air fluff—they emerge just as soft as day one.</p>
+          </div>
+          <div class="promise-card">
+            <div class="promise-icon-wrap icon-mint">🪡</div>
+            <h3 class="promise-title">Double-Stitched Seams</h3>
+            <p class="promise-desc">Reinforced internal stitching ensures ears, tails, and paws withstand years of tight emotional support squeezes.</p>
+          </div>
+          <div class="promise-card">
+            <div class="promise-icon-wrap icon-lavender">🌿</div>
+            <h3 class="promise-title">100% Hypoallergenic</h3>
+            <p class="promise-desc">Ultra-safe, non-toxic microfibers that are gentle on sensitive skin and safe for cuddlers of all ages.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Mystery Gacha / Surprise Section -->
+    <section class="mystery-section">
+      <div class="container">
+        <div class="mystery-banner">
+          <div class="mystery-content">
+            <span style="font-size: 3.5rem; display: block; margin-bottom: 0.8rem; animation: softWiggle 3s infinite;">🎁</span>
+            <h2 class="mystery-title">Unbox a Mystery Cutie Treat!</h2>
+            <p class="mystery-desc">Click the magic gift box below to reveal an instant surprise perk, free sticker code, or secret adoption bonus!</p>
+            <button class="gacha-btn" onclick="triggerMysteryGacha(event)">
+              <span>✨ Crack Open Mystery Box! ✨</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Customer Testimonials Section -->
+    <section class="reviews-section" id="reviews-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle-pill">💌 Warm Fuzzy Letters</span>
+          <h2 class="section-title">Loved by 50,000+ Snugglers</h2>
+          <p class="section-desc">Real stories from people who found their bedtime companion, desk buddy, and panic-attack melter.</p>
+        </div>
+
+        <div class="reviews-grid">
+          <!-- Review 1 -->
+          <div class="review-card">
+            <div class="review-header">
+              <div class="review-avatar">🐰</div>
+              <div class="reviewer-meta">
+                <h4>Hana K.</h4>
+                <span class="verified-tag">✓ Verified Snuggler</span>
+              </div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">
+              "Pip the Strawberry Bunny is genuinely the softest thing I have ever touched. The little strawberry on her head is so cute it makes me smile every morning. 10/10 recommend!"
+            </p>
+            <span class="review-plushie-tag">Adopted: Pip & Peaches</span>
+          </div>
+
+          <!-- Review 2 -->
+          <div class="review-card">
+            <div class="review-header">
+              <div class="review-avatar">🧋</div>
+              <div class="reviewer-meta">
+                <h4>Marcus T.</h4>
+                <span class="verified-tag">✓ Verified Snuggler</span>
+              </div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">
+              "I bought Boba the Bear as a desk buddy during long coding sprints. His round belly is the perfect wrist rest and squishing him helps so much when debugging nasty code."
+            </p>
+            <span class="review-plushie-tag">Adopted: Boba the Bear</span>
+          </div>
+
+          <!-- Review 3 -->
+          <div class="review-card">
+            <div class="review-header">
+              <div class="review-avatar">🦭</div>
+              <div class="reviewer-meta">
+                <h4>Chloe L.</h4>
+                <span class="verified-tag">✓ Verified Snuggler</span>
+              </div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">
+              "Mochi the Seal is a literal sphere of purest happiness. I hug him while watching movies and my roommate keeps trying to steal him. Ordering another one today!"
+            </p>
+            <span class="review-plushie-tag">Adopted: Mochi the Seal</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter Section ("Secret Snuggle Club") -->
+    <section class="newsletter-section">
+      <div class="container">
+        <div class="newsletter-card">
+          <span style="font-size: 3rem;">💌</span>
+          <h2 class="section-title" style="margin-top: 0.5rem;">Join the Secret Snuggle Club</h2>
+          <p class="section-desc" style="max-width: 500px; margin: 0 auto;">
+            Get early access to limited edition drops, secret discount codes, and a free printable Adoption Certificate!
+          </p>
+
+          <form class="newsletter-form" id="newsletter-form">
+            <input type="email" id="newsletter-email" class="newsletter-input" placeholder="Enter your cozy email..." required>
+            <button type="submit" class="newsletter-btn">
+              Join Club 🌸
+            </button>
+          </form>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">No spam, ever! Only warm cuddly updates and cute illustrations. 🍓</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Brand Summary -->
+        <div class="footer-brand">
+          <a href="#" class="brand-logo">
+            <span class="logo-icon-wrap">🧸</span>
+            <span class="brand-name">CloudPuff</span>
+          </a>
+          <p>
+            Crafting premium, hyper-squishable emotional support plushies to make the universe a softer, happier place one hug at a time.
+          </p>
+        </div>
+
+        <!-- Quick Links 1 -->
+        <div class="footer-col">
+          <h4>Adopt Buddies</h4>
+          <ul class="footer-links">
+            <li><a href="#shop-section" class="footer-link">Kawaii Classics</a></li>
+            <li><a href="#shop-section" class="footer-link">Dream Paws</a></li>
+            <li><a href="#shop-section" class="footer-link">Sea Cuties</a></li>
+            <li><a href="#shop-section" class="footer-link">Prehistoric Puffs</a></li>
+          </ul>
+        </div>
+
+        <!-- Quick Links 2 -->
+        <div class="footer-col">
+          <h4>Snuggle Support</h4>
+          <ul class="footer-links">
+            <li><a href="#promise-section" class="footer-link">Plushie Care Guide</a></li>
+            <li><a href="#promise-section" class="footer-link">Adoption Certificates</a></li>
+            <li><a href="#reviews-section" class="footer-link">Shipping & Delivery</a></li>
+            <li><a href="#reviews-section" class="footer-link">100% Cuddle Guarantee</a></li>
+          </ul>
+        </div>
+
+        <!-- Quick Links 3 -->
+        <div class="footer-col">
+          <h4>Social & Community</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Instagram 📸 @CloudPuff</a></li>
+            <li><a href="#" class="footer-link">TikTok 🎵 @CloudPuffPlush</a></li>
+            <li><a href="#" class="footer-link">Discord 💬 Snuggle Club</a></li>
+            <li><a href="#" class="footer-link">Pinterest 📌 Cozy Room Inspo</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <span>© 2026 CloudPuff Plushies Inc. All hugs reserved. Design made by Arsalan Abbas 💖</span>
+        <button class="back-to-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+          Back to Top ☁️ ↑
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Shopping Cart Slide-in Drawer -->
+  <div class="cart-backdrop" id="cart-drawer-backdrop" onclick="if(event.target === this) closeCart()">
+    <aside class="cart-drawer">
+      <!-- Drawer Header -->
+      <div class="cart-header">
+        <h3 class="cart-title">
+          <span>🛒 Your Cuddle Basket</span>
+        </h3>
+        <button class="close-btn" onclick="closeCart()" aria-label="Close cart">✕</button>
+      </div>
+
+      <!-- Free Shipping Tracker -->
+      <div class="cart-shipping-bar">
+        <div class="shipping-msg" id="shipping-msg">
+          Add <strong>$45.00</strong> to get <strong>FREE Cuddle Delivery!</strong>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="shipping-progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Cart Items Container -->
+      <div class="cart-items-wrap" id="cart-items-wrap">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Cart Summary & Checkout -->
+      <div class="cart-footer">
+        <div class="cart-summary-row">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">$0.00</span>
+        </div>
+        <div class="cart-summary-row">
+          <span>Shipping</span>
+          <span id="cart-shipping-cost">$0.00</span>
+        </div>
+        <div class="cart-total-row">
+          <span>Total</span>
+          <span id="cart-total">$0.00</span>
+        </div>
+        <button class="checkout-btn" onclick="simulateCheckout()">
+          <span>Proceed to Adoption Checkout 💖</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Quick View Modal -->
+  <div class="modal-backdrop" id="quick-view-modal" onclick="if(event.target === this) closeModal()">
+    <div class="modal-dialog">
+      <button class="modal-close-btn" onclick="closeModal()" aria-label="Close quick view">✕</button>
+      <div id="modal-dialog-content">
+        <!-- Injected via openQuickView() in app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Main JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
