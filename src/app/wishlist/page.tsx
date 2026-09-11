@@ -48,7 +48,7 @@ export default function WishlistPage() {
         <div className="wishlist-header-banner">
           <div className="wishlist-title-wrap">
             <span className="wishlist-badge">💖 My Cuddle Sanctuary</span>
-            <h1 className="wishlist-page-title">Saved Dream Buddies</h1>
+            <h1 className="wishlist-page-title">Wishlist Dream Buddies</h1>
             <p className="wishlist-page-subtitle">
               Your personal dream sanctuary of future cuddle buddies waiting for their forever home.
             </p>

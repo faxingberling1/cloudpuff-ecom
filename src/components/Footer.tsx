@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
             <ul className="footer-links">
               <li><Link href="/#shop-section" className="footer-link">Cuddle Squad 🍓</Link></li>
               <li><Link href="/customizer" className="footer-link">Build-A-Cloud Studio 🎨</Link></li>
-              <li><Link href="/wishlist" className="footer-link">Saved Sanctuary 💖</Link></li>
+              <li><Link href="/wishlist" className="footer-link">Wishlist Sanctuary 💖</Link></li>
               <li><Link href="/game" className="footer-link">Cloud Hop Arcade 🎮</Link></li>
             </ul>
           </div>

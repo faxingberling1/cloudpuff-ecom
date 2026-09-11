@@ -98,7 +98,7 @@ export default function ProductDetailPage({
                 onClick={() => {
                   playPop();
                   toggleWishlist(plushie.id);
-                  showToast(isWishlisted ? `Removed from sanctuary` : `Saved ${plushie.name} to sanctuary! 💖`);
+                  showToast(isWishlisted ? `Removed from Wishlist` : `Added ${plushie.name} to Wishlist! 💖`);
                 }}
                 title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
                 type="button"

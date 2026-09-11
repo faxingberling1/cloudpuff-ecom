@@ -88,16 +88,6 @@ export const Navbar: React.FC = () => {
               <span>📖</span>
             </Link>
           </li>
-          <li>
-            <Link
-              href="/wishlist"
-              className={`nav-link ${isWishlistActive ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span>Wishlist</span>
-              <span>💖 {wishlist.length > 0 ? `(${wishlist.length})` : ''}</span>
-            </Link>
-          </li>
         </ul>
 
         {/* Action Buttons */}
@@ -139,10 +129,11 @@ export const Navbar: React.FC = () => {
           <Link
             href="/wishlist"
             className={`action-pill-btn wishlist-nav-btn ${isWishlistActive ? 'active' : ''}`}
-            title="View saved plushies"
+            title="View your Wishlist"
+            onClick={playPop}
           >
             <span>💖</span>
-            <span>Saved</span>
+            <span>Wishlist</span>
             {wishlist.length > 0 && (
               <span className="cart-badge" style={{ background: 'var(--pink-primary)' }}>
                 {wishlist.length}
