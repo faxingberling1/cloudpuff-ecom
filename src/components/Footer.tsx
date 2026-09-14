@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
           <div className="footer-col">
             <h4>Adopt & Create</h4>
             <ul className="footer-links">
-              <li><Link href="/#shop-section" className="footer-link">Cuddle Squad 🍓</Link></li>
+              <li><Link href="/shop" className="footer-link">Cuddle Squad 🍓</Link></li>
               <li><Link href="/customizer" className="footer-link">Build-A-Cloud Studio 🎨</Link></li>
               <li><Link href="/wishlist" className="footer-link">Wishlist Sanctuary 💖</Link></li>
               <li><Link href="/game" className="footer-link">Cloud Hop Arcade 🎮</Link></li>
@@ -38,8 +38,8 @@ export const Footer: React.FC = () => {
           <div className="footer-col">
             <h4>Snuggle Support</h4>
             <ul className="footer-links">
-              <li><Link href="/orders" className="footer-link">Adoption Family Album 📖</Link></li>
-              <li><Link href="/orders" className="footer-link">Track Delivery 🚚</Link></li>
+              <li><Link href="/dashboard?tab=orders" className="footer-link">Adoption Family Album 📖</Link></li>
+              <li><Link href="/dashboard?tab=orders" className="footer-link">Track Delivery 🚚</Link></li>
               <li><Link href="/#promise-section" className="footer-link">Plushie Care Guide 🫧</Link></li>
               <li><Link href="/#reviews-section" className="footer-link">100% Cuddle Guarantee ✨</Link></li>
             </ul>

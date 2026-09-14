@@ -27,6 +27,7 @@ export default function HomePage() {
 
   return (
     <>
+      {/* Header announcement & navigation */}
       <AnnouncementBar />
       <Navbar />
 

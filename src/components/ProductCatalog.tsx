@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { PLUSHIES } from '@/data/plushies';
 import { Category, Plushie } from '@/types/plushie';
 import { ProductCard } from '@/components/ProductCard';
@@ -82,6 +83,20 @@ export const ProductCatalog: React.FC<ProductCatalogProps> = ({ onQuickView }) =
               onQuickView={onQuickView}
             />
           ))}
+        </div>
+
+        {/* Dedicated Shop Page Banner */}
+        <div className="homepage-shop-cta-box">
+          <div className="cta-left">
+            <span className="cta-icon">🎁✨</span>
+            <div className="cta-text">
+              <h3>Looking for Custom Filters, Squish Scales & Instant Checkout?</h3>
+              <p>Visit our dedicated Sanctuary Shop with 6-way sorting, live price filters, and 1-click adoption.</p>
+            </div>
+          </div>
+          <Link href="/shop" className="btn-primary" onClick={playPop}>
+            Open Sanctuary Shop 🍓 →
+          </Link>
         </div>
       </div>
     </section>

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSound } from '@/context/SoundContext';
 import { useCart } from '@/context/CartContext';
 import { confettiEngine } from '@/utils/confetti';
 
 export const HeroSection: React.FC = () => {
-  const { playSquish } = useSound();
+  const { playPop, playSquish } = useSound();
   const { showToast } = useCart();
   const [squishing, setSquishing] = useState(false);
 
@@ -17,10 +18,6 @@ export const HeroSection: React.FC = () => {
     confettiEngine.burst(e.clientX, e.clientY);
     showToast('🍓 Squeeeak! Pip loved that cuddle!');
     setTimeout(() => setSquishing(false), 400);
-  };
-
-  const scrollToShop = () => {
-    document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -39,10 +36,10 @@ export const HeroSection: React.FC = () => {
           </p>
 
           <div className="hero-cta-group">
-            <button className="btn-primary" onClick={scrollToShop} type="button">
+            <Link href="/shop" className="btn-primary" onClick={playPop}>
               Adopt a Plushie Now 🍓
-            </button>
-            <a href="#mood-section" className="btn-secondary">
+            </Link>
+            <a href="#mood-section" className="btn-secondary" onClick={playPop}>
               Find My Soul-Plushie 🔮
             </a>
           </div>
