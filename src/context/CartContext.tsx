@@ -25,6 +25,7 @@ interface CartContextType {
   showToast: (msg: string) => void;
   wishlist: string[];
   toggleWishlist: (id: string) => void;
+  clearWishlist: () => void;
 }
 
 const CartContext = createContext<CartContextType>({
@@ -42,6 +43,7 @@ const CartContext = createContext<CartContextType>({
   showToast: () => {},
   wishlist: [],
   toggleWishlist: () => {},
+  clearWishlist: () => {},
 });
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -79,6 +81,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setWishlist(JSON.parse(savedWishlist));
       }
     } catch {}
+
+    const handleWishlistSync = () => {
+      try {
+        const savedWishlist = localStorage.getItem('cloudpuff_wishlist');
+        if (savedWishlist) {
+          setWishlist(JSON.parse(savedWishlist));
+        }
+      } catch {}
+    };
+
+    window.addEventListener('storage', handleWishlistSync);
+    window.addEventListener('cloudpuff_wishlist_sync', handleWishlistSync);
+    return () => {
+      window.removeEventListener('storage', handleWishlistSync);
+      window.removeEventListener('cloudpuff_wishlist_sync', handleWishlistSync);
+    };
   }, []);
 
   // Sync cart to localStorage
@@ -160,9 +178,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updated = [...prev, id];
         showToast('Added to your Love Wishlist! 🎀');
       }
-      localStorage.setItem('cloudpuff_wishlist', JSON.stringify(updated));
+      try {
+        localStorage.setItem('cloudpuff_wishlist', JSON.stringify(updated));
+        const savedUser = localStorage.getItem('cloudpuff_user_session');
+        if (savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          parsedUser.wishlist = updated;
+          localStorage.setItem('cloudpuff_user_session', JSON.stringify(parsedUser));
+        }
+      } catch {}
       return updated;
     });
+  };
+
+  const clearWishlist = () => {
+    playPop();
+    setWishlist([]);
+    try {
+      localStorage.setItem('cloudpuff_wishlist', JSON.stringify([]));
+      const savedUser = localStorage.getItem('cloudpuff_user_session');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        parsedUser.wishlist = [];
+        localStorage.setItem('cloudpuff_user_session', JSON.stringify(parsedUser));
+      }
+    } catch {}
+    showToast('Cleared all saved items from wishlist.');
   };
 
   const totalCount = items.reduce((sum, item) => sum + item.qty, 0);
@@ -183,7 +224,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toasts,
       showToast,
       wishlist,
-      toggleWishlist
+      toggleWishlist,
+      clearWishlist
     }}>
       {children}
     </CartContext.Provider>

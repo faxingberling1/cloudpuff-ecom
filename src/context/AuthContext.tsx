@@ -32,6 +32,7 @@ export interface UserProfile {
   favoriteBuddy?: string;
   memberSince: string;
   role: UserRole;
+  wishlist?: string[];
 }
 
 interface AuthContextType {
@@ -75,6 +76,7 @@ export const DEMO_PARENT_USER: UserProfile = {
   favoriteBuddy: 'Matcha Dino',
   memberSince: 'September 2026',
   role: 'user',
+  wishlist: ['matcha-dino', 'strawberry-axolotl'],
 };
 
 export const DEMO_ADMIN_USER: UserProfile = {
@@ -132,11 +134,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoaded(true);
   }, []);
 
-  const saveUserSession = (userData: UserProfile | null) => {
-    setUser(userData);
+  const syncGuestWishlistWithUser = (userData: UserProfile): UserProfile => {
     try {
-      if (userData) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+      const rawGuest = localStorage.getItem('cloudpuff_wishlist');
+      const guestWishlist: string[] = rawGuest ? JSON.parse(rawGuest) : [];
+      const accountWishlist: string[] = userData.wishlist || [];
+      const merged = Array.from(new Set([...accountWishlist, ...guestWishlist]));
+
+      if (merged.length > 0) {
+        localStorage.setItem('cloudpuff_wishlist', JSON.stringify(merged));
+        userData.wishlist = merged;
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('cloudpuff_wishlist_sync'));
+        }
+      }
+    } catch {}
+    return userData;
+  };
+
+  const saveUserSession = (userData: UserProfile | null) => {
+    let finalUserData = userData;
+    if (finalUserData) {
+      finalUserData = syncGuestWishlistWithUser({ ...finalUserData });
+    }
+    setUser(finalUserData);
+    try {
+      if (finalUserData) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(finalUserData));
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }

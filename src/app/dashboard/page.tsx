@@ -121,7 +121,7 @@ function DashboardInner() {
   const initialTabParam = searchParams?.get('tab');
 
   const { user, isLoggedIn, isAdmin, logout, updateProfile, loginAsUserDemo, loginAsAdminDemo } = useAuth();
-  const { wishlist, showToast } = useCart();
+  const { wishlist, toggleWishlist, addItem, showToast, setIsCartOpen } = useCart();
   const { playPop, playChime, playSquish } = useSound();
   const { isNightMode, toggleNightMode, isLullabyPlaying, toggleLullaby } = useTheme();
 
@@ -135,14 +135,15 @@ function DashboardInner() {
   const [activeTab, setActiveTab] = useState<'parent' | 'admin'>('parent');
   const isAdminView = isUserAdmin && activeTab === 'admin';
 
-  // Dashboard Sub-section: 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences'
-  type DashboardSection = 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences';
+  // Dashboard Sub-section: 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences' | 'wishlist'
+  type DashboardSection = 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences' | 'wishlist';
   const [dashboardSection, setDashboardSection] = useState<DashboardSection>(() => {
     if (initialTabParam === 'orders') return 'orders';
     if (initialTabParam === 'profile') return 'profile';
     if (initialTabParam === 'security') return 'security';
     if (initialTabParam === 'billing') return 'billing';
     if (initialTabParam === 'notifications') return 'notifications';
+    if (initialTabParam === 'wishlist') return 'wishlist';
     if (initialTabParam === 'preferences') return isUserAdmin ? 'preferences' : 'billing';
     return 'overview';
   });
@@ -150,7 +151,7 @@ function DashboardInner() {
   // Sync tab param from URL
   useEffect(() => {
     const tabParam = searchParams?.get('tab');
-    if (tabParam && ['overview', 'orders', 'profile', 'security', 'billing', 'notifications', 'preferences'].includes(tabParam)) {
+    if (tabParam && ['overview', 'orders', 'profile', 'security', 'billing', 'notifications', 'preferences', 'wishlist'].includes(tabParam)) {
       if (tabParam === 'preferences' && !isUserAdmin) {
         setDashboardSection('billing');
       } else {
@@ -721,6 +722,28 @@ function DashboardInner() {
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const wishlistedPlushies = PLUSHIES.filter((p) => wishlist.includes(p.id));
+  const totalWishlistValue = wishlistedPlushies.reduce((sum, p) => sum + p.price, 0);
+
+  const handleAdoptAllWishlist = () => {
+    if (wishlistedPlushies.length === 0) return;
+    playSquish();
+    confettiEngine.burst();
+    wishlistedPlushies.forEach((p) => {
+      addItem(p.id, 1);
+    });
+    showToast(`🎉 Adopted all ${wishlistedPlushies.length} saved plushies! Added to basket.`);
+    setIsCartOpen(true);
+  };
+
+  const handleShareWishlist = () => {
+    playChime();
+    if (typeof window !== 'undefined') {
+      navigator.clipboard?.writeText(`${window.location.origin}/wishlist`);
+      showToast('💌 Wishlist link copied! Share it with friends & family.');
     }
   };
 
@@ -1688,6 +1711,128 @@ function DashboardInner() {
     </div>
   );
 
+  const renderWishlistSection = () => (
+    <div className="dashboard-subview-wrapper fade-in-section">
+      <div className="orders-header-banner">
+        <span className="orders-badge">💖 Dream Sanctuary Album</span>
+        <h2 className="orders-title">Saved Wishlist Buddies</h2>
+        <p className="orders-subtitle">
+          Future cuddle companions nestled in your cloud nursery waiting for their forever adoption.
+        </p>
+
+        <div className="orders-summary-chips-row">
+          <span className="summary-chip pink">🧸 {wishlistedPlushies.length} Saved Friends</span>
+          <span className="summary-chip yellow">💰 Total Value: ${totalWishlistValue.toFixed(2)}</span>
+          <span className="summary-chip transit">✨ Synced to {user?.email}</span>
+        </div>
+
+        {wishlistedPlushies.length > 0 && (
+          <div className="wishlist-actions-bar" style={{ marginTop: '1.2rem', display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn-primary"
+              onClick={handleAdoptAllWishlist}
+              type="button"
+            >
+              Adopt Whole Squad ({wishlistedPlushies.length}) 💖
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={handleShareWishlist}
+              type="button"
+            >
+              💌 Share Wishlist
+            </button>
+            <Link href="/wishlist" className="btn-secondary" style={{ color: '#4B5563' }} onClick={playPop}>
+              Public Share View ↗
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <div id="dashboard-wishlist-cards" style={{ marginTop: '1.5rem' }}>
+        {wishlistedPlushies.length === 0 ? (
+          <div className="wishlist-empty-card" style={{ background: 'white', padding: '3.5rem 2rem', borderRadius: '24px', textAlign: 'center', border: '1.5px dashed #FBCFE8' }}>
+            <div className="empty-plushie-icon" style={{ fontSize: '3.5rem', marginBottom: '0.8rem' }}>🧸</div>
+            <h2 className="empty-title" style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1F2937' }}>
+              Your Wishlist sanctuary is currently empty!
+            </h2>
+            <p className="empty-subtitle" style={{ color: '#6B7280', maxWidth: '440px', margin: '0.6rem auto 1.5rem', fontSize: '0.95rem' }}>
+              Tap the heart 💖 on any plushie companion across the shop to nestle them in your dashboard sanctuary.
+            </p>
+            <Link href="/#shop-section" className="btn-primary" onClick={playPop}>
+              Explore Cuddle Squad 🍓
+            </Link>
+          </div>
+        ) : (
+          <div className="wishlist-grid">
+            {wishlistedPlushies.map((plushie) => (
+              <div key={plushie.id} className="wishlist-card">
+                <div className="wishlist-card-thumb">
+                  <Link href={`/product/${plushie.id}`} title={`View ${plushie.name}`}>
+                    <Image
+                      src={plushie.image}
+                      alt={plushie.name}
+                      width={320}
+                      height={320}
+                      className="wishlist-thumb-img"
+                    />
+                  </Link>
+                  <button
+                    className="wishlist-remove-btn"
+                    onClick={() => {
+                      playPop();
+                      toggleWishlist(plushie.id);
+                      showToast(`Removed ${plushie.name} from your sanctuary.`);
+                    }}
+                    title="Remove from wishlist"
+                    type="button"
+                  >
+                    ✕
+                  </button>
+                  <span className="squish-pill-badge">☁️ {plushie.squishFactor} Squish</span>
+                </div>
+
+                <div className="wishlist-card-body">
+                  <div className="wishlist-category-tag">{plushie.category.toUpperCase()}</div>
+                  <h3 className="wishlist-item-name">
+                    <Link href={`/product/${plushie.id}`}>{plushie.name}</Link>
+                  </h3>
+                  <p className="wishlist-item-subtitle">{plushie.subtitle}</p>
+
+                  <div className="wishlist-item-pricing">
+                    <span className="current-price">${plushie.price.toFixed(2)}</span>
+                    <span className="original-price">${plushie.originalPrice.toFixed(2)}</span>
+                  </div>
+
+                  <div className="wishlist-card-actions">
+                    <button
+                      className="btn-primary wishlist-adopt-btn"
+                      onClick={() => {
+                        playSquish();
+                        addItem(plushie.id, 1);
+                        showToast(`🧸 Adopted ${plushie.name}! Added to basket.`);
+                        setIsCartOpen(true);
+                      }}
+                      type="button"
+                    >
+                      Adopt Now 🍓
+                    </button>
+                    <Link
+                      href={`/product/${plushie.id}`}
+                      className="btn-secondary wishlist-details-btn"
+                    >
+                      View Bio ✨
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="page-wrapper dashboard-page-root">
       <Navbar />
@@ -2000,10 +2145,14 @@ function DashboardInner() {
                       </button>
                     </li>
                     <li>
-                      <Link href="/wishlist" className="inpage-link-item">
+                      <button
+                        type="button"
+                        className={`inpage-link-item inpage-link-btn ${dashboardSection === 'wishlist' ? 'active-link' : ''}`}
+                        onClick={() => handleSectionChange('wishlist')}
+                      >
                         <span className="inpage-link-label">💖 Saved Wishlist</span>
                         <span className="inpage-link-badge">{wishlist.length}</span>
-                      </Link>
+                      </button>
                     </li>
                     <li>
                       <button
@@ -2224,6 +2373,7 @@ function DashboardInner() {
               {dashboardSection === 'billing' && '💳 Saved Cards & Billing'}
               {dashboardSection === 'notifications' && '🔔 Notification Channels'}
               {dashboardSection === 'preferences' && (activeTab === 'admin' ? '⚙️ Store Policies' : '💳 Wallet & Alerts')}
+              {dashboardSection === 'wishlist' && '💖 Saved Wishlist'}
             </span>
 
             {/* --- SECTION 1: OVERVIEW SUB-NAV --- */}
@@ -2571,6 +2721,39 @@ function DashboardInner() {
                 >
                   <span>📦 Store Governance</span>
                 </button>
+              </>
+            )}
+
+            {/* --- SECTION 6: WISHLIST SUB-NAV --- */}
+            {dashboardSection === 'wishlist' && (
+              <>
+                <button
+                  type="button"
+                  className="subnav-tab-btn subnav-subitem"
+                  onClick={() => scrollToSection('dashboard-wishlist-cards')}
+                >
+                  <span>💖 Saved Buddies</span>
+                  <span className="subnav-tab-counter">{wishlist.length}</span>
+                </button>
+                {wishlist.length > 0 && (
+                  <button
+                    type="button"
+                    className="subnav-tab-btn subnav-subitem"
+                    onClick={handleAdoptAllWishlist}
+                  >
+                    <span>🛍️ Adopt Whole Squad</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="subnav-tab-btn subnav-subitem"
+                  onClick={handleShareWishlist}
+                >
+                  <span>💌 Share Wishlist</span>
+                </button>
+                <Link href="/#shop-section" className="subnav-tab-btn subnav-subitem" onClick={playPop}>
+                  <span>🍓 Explore Shop</span>
+                </Link>
               </>
             )}
           </div>
@@ -3028,10 +3211,6 @@ function DashboardInner() {
                 )}
               </div>
             )}
-
-            {dashboardSection === 'profile' && renderProfileSection(false)}
-            {dashboardSection === 'security' && renderSecuritySection(false)}
-            {dashboardSection === 'preferences' && renderPreferencesSection(false)}
           </div>
         )}
 
@@ -3623,6 +3802,7 @@ function DashboardInner() {
                 {dashboardSection === 'billing' && renderBillingSection()}
                 {dashboardSection === 'notifications' && renderNotificationsSection()}
                 {dashboardSection === 'preferences' && renderPreferencesSection(isAdminView)}
+                {dashboardSection === 'wishlist' && renderWishlistSection()}
               </>
             )}
           </div>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { useSound } from '@/context/SoundContext';
 import { PLUSHIES } from '@/data/plushies';
 import { confettiEngine } from '@/utils/confetti';
@@ -11,7 +12,8 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist, addItem, showToast, setIsCartOpen } = useCart();
+  const { wishlist, toggleWishlist, clearWishlist, addItem, showToast, setIsCartOpen } = useCart();
+  const { user, isLoggedIn } = useAuth();
   const { playPop, playSquish, playChime } = useSound();
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -44,6 +46,59 @@ export default function WishlistPage() {
       <Navbar />
 
       <main className="wishlist-page container">
+        {/* Public vs Authenticated Synchronization Notice */}
+        <div style={{
+          marginBottom: '1.5rem',
+          padding: '1rem 1.4rem',
+          borderRadius: '16px',
+          background: isLoggedIn
+            ? 'linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 253, 250, 0.9))'
+            : 'linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(255, 237, 213, 0.9))',
+          border: isLoggedIn ? '1.5px solid #A7F3D0' : '1.5px solid #FDE68A',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            <span style={{ fontSize: '1.6rem' }}>{isLoggedIn ? '✨' : '💡'}</span>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.95rem', color: isLoggedIn ? '#065F46' : '#92400E' }}>
+                {isLoggedIn ? `Cloud Parent Sanctuary Linked (${user?.email})` : 'Public Guest Wishlist Active'}
+              </strong>
+              <span style={{ fontSize: '0.85rem', color: isLoggedIn ? '#047857' : '#B45309' }}>
+                {isLoggedIn
+                  ? 'Your saved cuddle buddies are permanently stored and integrated with your User Dashboard.'
+                  : 'Add plushies freely as a guest! Once you create an account, these same items will appear directly in your User Dashboard.'}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard?tab=wishlist"
+                className="btn-secondary"
+                style={{ fontSize: '0.85rem', padding: '0.45rem 0.9rem', whiteSpace: 'nowrap' }}
+                onClick={playPop}
+              >
+                🧸 View in Dashboard Sanctuary →
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="btn-primary"
+                style={{ fontSize: '0.85rem', padding: '0.45rem 0.9rem', whiteSpace: 'nowrap' }}
+                onClick={playPop}
+              >
+                Create Account & Sync Buddies ✨
+              </Link>
+            )}
+          </div>
+        </div>
+
         {/* Top Header */}
         <div className="wishlist-header-banner">
           <div className="wishlist-title-wrap">
@@ -69,6 +124,18 @@ export default function WishlistPage() {
                 type="button"
               >
                 {copiedLink ? '✓ Link Copied!' : '💌 Share Wishlist'}
+              </button>
+              <button
+                className="btn-secondary"
+                style={{ padding: '0.6rem 0.9rem', color: '#EF4444', borderColor: '#FCA5A5' }}
+                onClick={() => {
+                  if (window.confirm('Clear all buddies from your wishlist?')) {
+                    clearWishlist();
+                  }
+                }}
+                type="button"
+              >
+                Clear All 🗑️
               </button>
             </div>
           )}
