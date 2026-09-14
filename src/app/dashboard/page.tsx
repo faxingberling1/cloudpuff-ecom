@@ -1018,19 +1018,18 @@ function DashboardInner() {
             {isAdminMode ? '🛡️ Admin Fort Knox Protocol' : '🔐 Sanctuary Account Shield'}
           </span>
           <h2 className="orders-title">
-            {isAdminMode ? 'Admin Authentication, 2FA & Audit Logs' : 'Account Password & Login Security'}
+            {isAdminMode ? 'Admin Authentication, 2FA & Audit Logs' : 'Security Settings & Two-Factor Authentication (2FA)'}
           </h2>
           <p className="orders-subtitle">
             {isAdminMode
               ? 'Enforce administrative multi-factor verification, audit login telemetry, and revoke compromised operational sessions.'
-              : 'Manage your login password and active device sessions to keep your cuddle orders and account safe.'}
+              : 'Protect your adopted plushies, saved payment cards, and delivery records with two-factor authentication and session controls.'}
           </p>
         </div>
 
         <div className="security-grid-layout">
-          {/* Card 1: Two-Factor Authentication (2FA) - Admin Ops Only */}
-          {isAdminMode && (
-            <div className="dash-box security-card-box highlight-shield" id="security-2fa-section">
+          {/* Card 1: Two-Factor Authentication (2FA) */}
+          <div className="dash-box security-card-box highlight-shield" id="security-2fa-section">
               <div className="dash-box-header">
                 <div>
                   <span className="dash-box-pill">🛡️ Multi-Factor Auth</span>
@@ -1101,8 +1100,7 @@ function DashboardInner() {
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+          </div>
 
           {/* Card 2: Password Manager */}
           <div className="dash-box security-card-box" id="security-password-section">
@@ -2120,8 +2118,8 @@ function DashboardInner() {
                         className={`inpage-link-item inpage-link-btn ${dashboardSection === 'security' ? 'active-link' : ''}`}
                         onClick={() => handleSectionChange('security')}
                       >
-                        <span className="inpage-link-label">🔐 Password & Login Security</span>
-                        <span className="inpage-arrow">→</span>
+                        <span className="inpage-link-label">🔐 Security & 2FA Settings</span>
+                        <span className={`inpage-link-badge ${twoFactorActive ? 'active' : ''}`}>{twoFactorActive ? '2FA ON' : '2FA OFF'}</span>
                       </button>
                     </li>
                     <li>
@@ -2369,7 +2367,7 @@ function DashboardInner() {
               {dashboardSection === 'overview' && (activeTab === 'admin' ? '🛡️ Command & Stock' : '🧸 Cuddle Sanctuary')}
               {dashboardSection === 'orders' && (activeTab === 'admin' ? '📮 Dispatch Queue' : '📖 Adoption Registry')}
               {dashboardSection === 'profile' && (activeTab === 'admin' ? '🛡️ Warden Identity' : '👤 Identity Studio')}
-              {dashboardSection === 'security' && (activeTab === 'admin' ? '🛡️ Admin Fort Knox' : '🔐 Account Security')}
+              {dashboardSection === 'security' && (activeTab === 'admin' ? '🛡️ Admin Fort Knox' : '🔐 Account Security & 2FA')}
               {dashboardSection === 'billing' && '💳 Saved Cards & Billing'}
               {dashboardSection === 'notifications' && '🔔 Notification Channels'}
               {dashboardSection === 'preferences' && (activeTab === 'admin' ? '⚙️ Store Policies' : '💳 Wallet & Alerts')}
@@ -2586,24 +2584,22 @@ function DashboardInner() {
             {/* --- SECTION 4: SECURITY SUB-NAV (COMPONENTS OF SECURITY PAGE) --- */}
             {dashboardSection === 'security' && (
               <>
-                {activeTab === 'admin' && (
-                  <button
-                    type="button"
-                    className="subnav-tab-btn subnav-subitem"
-                    onClick={() => scrollToSection('security-2fa-section')}
+                <button
+                  type="button"
+                  className="subnav-tab-btn subnav-subitem"
+                  onClick={() => scrollToSection('security-2fa-section')}
+                >
+                  <span>🛡️ Two-Factor (2FA)</span>
+                  <span
+                    className="subnav-tab-counter"
+                    style={{
+                      background: twoFactorActive ? '#D1FAE5' : '#FEE2E2',
+                      color: twoFactorActive ? '#047857' : '#B91C1C',
+                    }}
                   >
-                    <span>🛡️ Two-Factor (2FA)</span>
-                    <span
-                      className="subnav-tab-counter"
-                      style={{
-                        background: twoFactorActive ? '#D1FAE5' : '#FEE2E2',
-                        color: twoFactorActive ? '#047857' : '#B91C1C',
-                      }}
-                    >
-                      {twoFactorActive ? 'ON' : 'OFF'}
-                    </span>
-                  </button>
-                )}
+                    {twoFactorActive ? 'ON' : 'OFF'}
+                  </span>
+                </button>
                 <button
                   type="button"
                   className="subnav-tab-btn subnav-subitem"
