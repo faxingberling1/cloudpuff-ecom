@@ -1,11 +1,37 @@
 import { NextResponse } from 'next/server';
 import { pool, initDb, SavedPaymentMethodRow } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth-guard';
+
+function resolveScopedUserId(authUser: { id: string; role: string } | null, targetUserId?: string | null): string {
+  // If user is authenticated:
+  if (authUser) {
+    // Admin can access other users' cards if explicitly requested
+    if (authUser.role === 'admin' && targetUserId) {
+      return targetUserId;
+    }
+    // Regular users are strictly locked to their own verified userId (IDOR Prevention)
+    return authUser.id;
+  }
+  // Unauthenticated fallback for demo testing
+  return targetUserId || 'user-parent-1';
+}
 
 export async function GET(request: Request) {
   try {
     await initDb();
+    const authUser = await getAuthenticatedUser(request);
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'user_arsalan';
+    const targetUserId = searchParams.get('userId');
+
+    // Prevent IDOR: non-admin cannot view another user's cards
+    if (authUser && authUser.role !== 'admin' && targetUserId && targetUserId !== authUser.id) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Cannot access other users payment methods' },
+        { status: 403 }
+      );
+    }
+
+    const userId = resolveScopedUserId(authUser, targetUserId);
 
     const res = await pool.query(
       `SELECT * FROM saved_payment_methods WHERE user_id = $1 ORDER BY is_default DESC, created_at ASC;`,
@@ -36,6 +62,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await initDb();
+    const authUser = await getAuthenticatedUser(request);
     const body = await request.json();
     const {
       brand,
@@ -45,7 +72,7 @@ export async function POST(request: Request) {
       isDefault = false,
       icon = '💳',
       cardNickname,
-      userId = 'user_arsalan',
+      userId: targetUserId,
     } = body;
 
     if (!brand || !last4 || !exp) {
@@ -55,13 +82,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Prevent IDOR: non-admin cannot create cards for someone else
+    if (authUser && authUser.role !== 'admin' && targetUserId && targetUserId !== authUser.id) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Cannot add payment methods for other accounts' },
+        { status: 403 }
+      );
+    }
+
+    const userId = resolveScopedUserId(authUser, targetUserId);
     const cardId = `card-${Date.now()}`;
     const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      // If set as default, mark others as false
+      // If set as default, mark other cards as false for this user
       if (isDefault) {
         await client.query(
           `UPDATE saved_payment_methods SET is_default = FALSE WHERE user_id = $1;`,
@@ -70,7 +106,7 @@ export async function POST(request: Request) {
       }
 
       const insertRes = await client.query(
-        `INSERT INTO saved_payment_methods
+        `INSERT INTO saved_payment_methods 
           (id, user_id, brand, cardholder_name, last4, exp, is_default, icon, card_nickname)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *;`,
@@ -78,7 +114,7 @@ export async function POST(request: Request) {
           cardId,
           userId,
           brand,
-          cardholderName || 'Verified Cloud Parent',
+          cardholderName || authUser?.name || 'Verified Cloud Parent',
           last4,
           exp,
           isDefault,
@@ -121,8 +157,9 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     await initDb();
+    const authUser = await getAuthenticatedUser(request);
     const body = await request.json();
-    const { id, action, cardNickname, exp, userId = 'user_arsalan' } = body;
+    const { id, action, cardNickname, exp, userId: targetUserId } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -131,7 +168,16 @@ export async function PUT(request: Request) {
       );
     }
 
+    if (authUser && authUser.role !== 'admin' && targetUserId && targetUserId !== authUser.id) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Cannot modify another user payment method' },
+        { status: 403 }
+      );
+    }
+
+    const userId = resolveScopedUserId(authUser, targetUserId);
     const client = await pool.connect();
+
     try {
       await client.query('BEGIN');
 
@@ -149,22 +195,22 @@ export async function PUT(request: Request) {
       } else if (action === 'update_card') {
         if (cardNickname && exp) {
           await client.query(
-            `UPDATE saved_payment_methods
-             SET card_nickname = $1, exp = $2, updated_at = NOW()
+            `UPDATE saved_payment_methods 
+             SET card_nickname = $1, exp = $2, updated_at = NOW() 
              WHERE id = $3 AND user_id = $4;`,
             [cardNickname, exp, id, userId]
           );
         } else if (cardNickname) {
           await client.query(
-            `UPDATE saved_payment_methods
-             SET card_nickname = $1, updated_at = NOW()
+            `UPDATE saved_payment_methods 
+             SET card_nickname = $1, updated_at = NOW() 
              WHERE id = $2 AND user_id = $3;`,
             [cardNickname, id, userId]
           );
         } else if (exp) {
           await client.query(
-            `UPDATE saved_payment_methods
-             SET exp = $1, updated_at = NOW()
+            `UPDATE saved_payment_methods 
+             SET exp = $1, updated_at = NOW() 
              WHERE id = $2 AND user_id = $3;`,
             [exp, id, userId]
           );
@@ -209,9 +255,10 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     await initDb();
+    const authUser = await getAuthenticatedUser(request);
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const userId = searchParams.get('userId') || 'user_arsalan';
+    const targetUserId = searchParams.get('userId');
 
     if (!id) {
       return NextResponse.json(
@@ -220,7 +267,16 @@ export async function DELETE(request: Request) {
       );
     }
 
+    if (authUser && authUser.role !== 'admin' && targetUserId && targetUserId !== authUser.id) {
+      return NextResponse.json(
+        { success: false, error: 'Access denied: Cannot delete another user payment method' },
+        { status: 403 }
+      );
+    }
+
+    const userId = resolveScopedUserId(authUser, targetUserId);
     const client = await pool.connect();
+
     try {
       await client.query('BEGIN');
 

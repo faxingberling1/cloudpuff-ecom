@@ -98,9 +98,14 @@ export async function initDb() {
       );
     `);
 
-    // Check if initial records exist for user_arsalan
+    // Migrate any legacy user_arsalan rows to user-parent-1
+    await client.query(
+      `UPDATE saved_payment_methods SET user_id = 'user-parent-1' WHERE user_id = 'user_arsalan';`
+    );
+
+    // Check if initial records exist for user-parent-1
     const check = await client.query(
-      `SELECT COUNT(*) FROM saved_payment_methods WHERE user_id = 'user_arsalan';`
+      `SELECT COUNT(*) FROM saved_payment_methods WHERE user_id = 'user-parent-1';`
     );
     const count = parseInt(check.rows[0].count, 10);
 
@@ -109,10 +114,10 @@ export async function initDb() {
       await client.query(`
         INSERT INTO saved_payment_methods (id, user_id, brand, cardholder_name, last4, exp, is_default, icon, card_nickname)
         VALUES
-          ('card-1', 'user_arsalan', 'CloudPay / Apple Pay', 'Arsalan Abbas', 'Apple Wallet', 'Synced', FALSE, 'applepay', 'CloudPay / Apple Pay'),
-          ('card-2', 'user_arsalan', 'Visa Snuggle Card', 'Arsalan Abbas', '4242', '08/29', TRUE, 'visa', 'Visa Snuggle Card'),
-          ('card-3', 'user_arsalan', 'Mastercard Fluff', 'Arsalan Abbas', '8819', '12/27', FALSE, 'mastercard', 'Mastercard Fluff')
-        ON CONFLICT (id) DO NOTHING;
+          ('card-1', 'user-parent-1', 'CloudPay / Apple Pay', 'Arsalan Abbas', 'Apple Wallet', 'Synced', FALSE, 'applepay', 'CloudPay / Apple Pay'),
+          ('card-2', 'user-parent-1', 'Visa Snuggle Card', 'Arsalan Abbas', '4242', '08/29', TRUE, 'visa', 'Visa Snuggle Card'),
+          ('card-3', 'user-parent-1', 'Mastercard Fluff', 'Arsalan Abbas', '8819', '12/27', FALSE, 'mastercard', 'Mastercard Fluff')
+        ON CONFLICT (id) DO UPDATE SET user_id = EXCLUDED.user_id, is_default = EXCLUDED.is_default;
       `);
     }
 

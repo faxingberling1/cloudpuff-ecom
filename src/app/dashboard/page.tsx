@@ -126,15 +126,31 @@ function DashboardInner() {
   const { playPop, playChime, playSquish } = useSound();
   const { isNightMode, toggleNightMode, isLullabyPlaying, toggleLullaby } = useTheme();
 
-  const isUserAdmin = Boolean(
-    isAdmin ||
-    user?.role === 'admin' ||
-    user?.email?.toLowerCase().includes('admin')
-  );
+  // Strict verified admin check
+  const isUserAdmin = Boolean(isAdmin && user?.role === 'admin');
 
   // Active view: 'parent' (Customer Cuddle Hub) vs 'admin' (Shop Sanctuary Manager)
   const [activeTab, setActiveTab] = useState<'parent' | 'admin'>('parent');
   const isAdminView = isUserAdmin && activeTab === 'admin';
+
+  // Strict RBAC Guard: If user is not admin, activeTab must never be 'admin'
+  useEffect(() => {
+    if (activeTab === 'admin' && !isUserAdmin) {
+      setActiveTab('parent');
+      showToast('🛡️ Access Denied: Administrator privileges required.');
+    }
+  }, [activeTab, isUserAdmin, showToast]);
+
+  // Handle middleware access denied query notifications
+  useEffect(() => {
+    const denied = searchParams?.get('denied');
+    if (denied) {
+      showToast('🛡️ Access Denied: Administrator privileges required.');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('denied');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, showToast]);
 
   // Dashboard Sub-section: 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences' | 'wishlist'
   type DashboardSection = 'overview' | 'orders' | 'profile' | 'security' | 'billing' | 'notifications' | 'preferences' | 'wishlist';

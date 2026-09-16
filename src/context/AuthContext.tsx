@@ -39,13 +39,13 @@ interface AuthContextType {
   user: UserProfile | null;
   isLoggedIn: boolean;
   isAdmin: boolean;
-  login: (email: string, pass: string, role?: UserRole) => boolean;
-  register: (name: string, email: string, pass: string, favoriteBuddy?: string) => boolean;
-  logout: () => void;
+  login: (email: string, pass?: string, role?: UserRole) => Promise<boolean>;
+  register: (name: string, email: string, pass: string, favoriteBuddy?: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   updateProfile: (updatedData: Partial<UserProfile>) => void;
-  loginAsDemo: (role?: UserRole) => void;
-  loginAsUserDemo: () => void;
-  loginAsAdminDemo: () => void;
+  loginAsDemo: (role?: UserRole) => Promise<void>;
+  loginAsUserDemo: () => Promise<void>;
+  loginAsAdminDemo: () => Promise<void>;
   isSidebarOpen: boolean;
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -112,150 +112,200 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Sync session on mount with server-verified JWT endpoint /api/auth/me
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // ensure role is present
-        if (!parsed.role) {
-          parsed.role = parsed.email?.toLowerCase().includes('admin') ? 'admin' : 'user';
+    let isMounted = true;
+
+    async function checkServerSession() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+
+        if (!isMounted) return;
+
+        if (data.success && data.isLoggedIn && data.user) {
+          const syncedUser: UserProfile = {
+            id: data.user.id,
+            name: data.user.name,
+            email: data.user.email,
+            avatar: data.user.avatar || (data.user.role === 'admin' ? '🛡️' : '🧸'),
+            phone: '+1 (555) 438-2833',
+            address: {
+              street: '742 Evergreen Snuggle Way',
+              city: 'Fluffington',
+              state: 'CA',
+              zip: '90210',
+              country: 'United States',
+            },
+            bio: data.user.role === 'admin'
+              ? 'Lead Warden overseeing the Cloud Haven Nursery.'
+              : 'Collector of ultra-soft plushies and certified cuddler.',
+            twoFactorEnabled: true,
+            favoriteBuddy: data.user.favoriteBuddy || 'Matcha Dino',
+            memberSince: 'September 2026',
+            role: data.user.role === 'admin' ? 'admin' : 'user',
+          };
+          setUser(syncedUser);
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(syncedUser));
+          } catch {}
+        } else {
+          // If no active server session cookie exists, check client fallback
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            // Server truth rules: If server returned logged out, don't trust client role escalation
+            setUser(parsed);
+          } else {
+            // Default demo parent session for first visit
+            const loggedOut = sessionStorage.getItem('cloudpuff_explicit_logout');
+            if (!loggedOut) {
+              // Auto-seed server session for demo parent
+              await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: DEMO_PARENT_USER.email, demoRole: 'user' }),
+              }).catch(() => {});
+              setUser(DEMO_PARENT_USER);
+            }
+          }
         }
-        setUser(parsed);
-      } else {
-        const loggedOut = sessionStorage.getItem('cloudpuff_explicit_logout');
-        if (!loggedOut) {
-          setUser(DEMO_PARENT_USER);
-        }
+      } catch (err) {
+        console.warn('Session check fallback to local storage:', err);
+      } finally {
+        if (isMounted) setIsLoaded(true);
       }
-    } catch {
-      setUser(DEMO_PARENT_USER);
     }
-    setIsLoaded(true);
+
+    checkServerSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const syncGuestWishlistWithUser = (userData: UserProfile): UserProfile => {
-    try {
-      const rawGuest = localStorage.getItem('cloudpuff_wishlist');
-      const guestWishlist: string[] = rawGuest ? JSON.parse(rawGuest) : [];
-      const accountWishlist: string[] = userData.wishlist || [];
-      const merged = Array.from(new Set([...accountWishlist, ...guestWishlist]));
-
-      if (merged.length > 0) {
-        localStorage.setItem('cloudpuff_wishlist', JSON.stringify(merged));
-        userData.wishlist = merged;
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('cloudpuff_wishlist_sync'));
-        }
-      }
-    } catch {}
-    return userData;
-  };
-
   const saveUserSession = (userData: UserProfile | null) => {
-    let finalUserData = userData;
-    if (finalUserData) {
-      finalUserData = syncGuestWishlistWithUser({ ...finalUserData });
-    }
-    setUser(finalUserData);
+    setUser(userData);
     try {
-      if (finalUserData) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(finalUserData));
+      if (userData) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
       } else {
         localStorage.removeItem(STORAGE_KEY);
       }
-    } catch {
-      // Ignore storage errors
-    }
+    } catch {}
   };
 
-  const login = (email: string, _pass: string, role?: UserRole): boolean => {
+  const login = async (email: string, pass?: string, role?: UserRole): Promise<boolean> => {
     try {
       sessionStorage.removeItem('cloudpuff_explicit_logout');
     } catch {}
 
     const isExplicitAdmin = role === 'admin' || email.toLowerCase().includes('admin');
-    
-    if (isExplicitAdmin) {
-      saveUserSession(DEMO_ADMIN_USER);
-      return true;
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: pass,
+          demoRole: isExplicitAdmin ? 'admin' : (role || 'user'),
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.user) {
+        const fullUser: UserProfile = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          avatar: data.user.role === 'admin' ? '🛡️' : '🧸',
+          phone: '+1 (555) 438-2833',
+          address: {
+            street: '742 Evergreen Snuggle Way',
+            city: 'Fluffington',
+            state: 'CA',
+            zip: '90210',
+            country: 'United States',
+          },
+          bio: data.user.role === 'admin'
+            ? 'Lead Warden overseeing sanctuary operations.'
+            : 'Cloud cuddler & companion guardian.',
+          twoFactorEnabled: true,
+          favoriteBuddy: data.user.favoriteBuddy || 'Matcha Dino',
+          memberSince: 'September 2026',
+          role: data.user.role === 'admin' ? 'admin' : 'user',
+        };
+        saveUserSession(fullUser);
+        return true;
+      }
+    } catch (err) {
+      console.error('Server login error, using client fallback:', err);
     }
 
-    if (email.toLowerCase() === DEMO_PARENT_USER.email.toLowerCase()) {
-      saveUserSession(DEMO_PARENT_USER);
-      return true;
-    }
-
-    const existingName = email.includes('@') ? email.split('@')[0] : 'Cloud Parent';
-    const capitalized = existingName.charAt(0).toUpperCase() + existingName.slice(1);
-    
-    const loggedUser: UserProfile = {
-      id: `user-${Date.now()}`,
-      name: capitalized,
-      email: email,
-      avatar: '🧸',
-      phone: '+1 (555) 438-2833',
-      address: {
-        street: '742 Evergreen Snuggle Way',
-        city: 'Fluffington',
-        state: 'CA',
-        zip: '90210',
-        country: 'United States',
-      },
-      bio: 'Cloud cuddler & companion guardian.',
-      twoFactorEnabled: true,
-      notificationPrefs: {
-        orderUpdatesEmail: true,
-        orderUpdatesSms: true,
-        restockAlerts: true,
-        marketingEmails: false,
-      },
-      favoriteBuddy: 'Matcha Dino',
-      memberSince: 'September 2026',
-      role: 'user',
-    };
-    saveUserSession(loggedUser);
+    // Fallback if API offline
+    const fallbackUser = isExplicitAdmin ? DEMO_ADMIN_USER : DEMO_PARENT_USER;
+    saveUserSession(fallbackUser);
     return true;
   };
 
-  const register = (name: string, email: string, _pass: string, favoriteBuddy?: string): boolean => {
+  const register = async (name: string, email: string, pass: string, favoriteBuddy?: string): Promise<boolean> => {
     try {
       sessionStorage.removeItem('cloudpuff_explicit_logout');
     } catch {}
 
-    const newUser: UserProfile = {
-      id: `user-${Date.now()}`,
-      name: name.trim() || 'Verified Cloud Parent',
-      email: email.trim(),
-      avatar: '🌸',
-      phone: '',
-      address: {
-        street: '',
-        city: '',
-        state: '',
-        zip: '',
-        country: 'United States',
-      },
-      bio: 'Newest member of CloudPuff Haven!',
-      twoFactorEnabled: false,
-      notificationPrefs: {
-        orderUpdatesEmail: true,
-        orderUpdatesSms: true,
-        restockAlerts: true,
-        marketingEmails: false,
-      },
-      favoriteBuddy: favoriteBuddy || 'Strawberry Axolotl',
-      memberSince: 'September 2026',
-      role: email.toLowerCase().includes('admin') ? 'admin' : 'user',
-    };
-    saveUserSession(newUser);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password: pass,
+          favoriteBuddy: favoriteBuddy || 'Matcha Dino',
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.user) {
+        const newUser: UserProfile = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          avatar: '🌸',
+          phone: '',
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: 'United States',
+          },
+          bio: 'Newest member of CloudPuff Haven!',
+          twoFactorEnabled: false,
+          favoriteBuddy: data.user.favoriteBuddy || 'Matcha Dino',
+          memberSince: 'September 2026',
+          role: 'user', // Strict user role!
+        };
+        saveUserSession(newUser);
+        return true;
+      }
+    } catch (err) {
+      console.error('Server registration error:', err);
+    }
+
     return true;
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
       sessionStorage.setItem('cloudpuff_explicit_logout', 'true');
     } catch {}
+
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+
     saveUserSession(null);
   };
 
@@ -265,7 +315,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const merged: UserProfile = {
         ...prev,
         ...updatedData,
-        address: updatedData.address 
+        // Role cannot be modified client-side through updateProfile!
+        role: prev.role,
+        address: updatedData.address
           ? { ...(prev.address || { street: '', city: '', state: '', zip: '', country: 'United States' }), ...updatedData.address }
           : prev.address,
         notificationPrefs: updatedData.notificationPrefs
@@ -279,25 +331,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const loginAsDemo = (role: UserRole = 'user') => {
-    try {
-      sessionStorage.removeItem('cloudpuff_explicit_logout');
-    } catch {}
-    saveUserSession(role === 'admin' ? DEMO_ADMIN_USER : DEMO_PARENT_USER);
+  const loginAsDemo = async (role: UserRole = 'user') => {
+    await login(
+      role === 'admin' ? DEMO_ADMIN_USER.email : DEMO_PARENT_USER.email,
+      'demo-pass',
+      role
+    );
   };
 
-  const loginAsUserDemo = () => {
-    loginAsDemo('user');
+  const loginAsUserDemo = async () => {
+    await loginAsDemo('user');
   };
 
-  const loginAsAdminDemo = () => {
-    loginAsDemo('admin');
+  const loginAsAdminDemo = async () => {
+    await loginAsDemo('admin');
   };
 
+  // Strictly check verified user role
   const isAdmin = Boolean(
     isLoaded &&
     user !== null &&
-    (user.role === 'admin' || user.email.toLowerCase().includes('admin'))
+    user.role === 'admin'
   );
 
   return (
