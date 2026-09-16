@@ -7,6 +7,7 @@ import { useCart } from '@/context/CartContext';
 import { useSound } from '@/context/SoundContext';
 import { confettiEngine } from '@/utils/confetti';
 import { TrackingModal } from '@/components/TrackingModal';
+import { AppleLogo, GoogleLogo, BrandIconRenderer } from '@/components/PaymentBrandLogos';
 
 interface CertificateInfo {
   parentName: string;
@@ -56,8 +57,51 @@ export default function CheckoutPage() {
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Saved Cards from Sanctuary Wallet
+  const [savedCards, setSavedCards] = useState<any[]>([]);
+  const [selectedSavedCardId, setSelectedSavedCardId] = useState<string>('');
+  const [useNewCard, setUseNewCard] = useState<boolean>(false);
+
   useEffect(() => {
     setIsMounted(true);
+
+    // Fetch saved payment methods from API or localStorage
+    const loadCards = async () => {
+      let cardsList: any[] = [];
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('cloudpuff_saved_cards');
+        if (cached) {
+          try {
+            cardsList = JSON.parse(cached);
+          } catch {}
+        }
+      }
+
+      try {
+        const res = await fetch('/api/payment-methods');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.methods)) {
+            cardsList = data.methods;
+          }
+        }
+      } catch {}
+
+      if (cardsList.length > 0) {
+        setSavedCards(cardsList);
+        const defaultCard = cardsList.find(c => c.isDefault) || cardsList[0];
+        if (defaultCard) {
+          setSelectedSavedCardId(defaultCard.id);
+          if (defaultCard.last4 !== 'Apple Wallet' && defaultCard.last4 !== 'PayPal Express') {
+            setCardNumber(`•••• •••• •••• ${defaultCard.last4}`);
+            setCardExpiry(defaultCard.exp);
+            setCardCvc('•••');
+          }
+        }
+      }
+    };
+
+    loadCards();
   }, []);
 
   const isFreeShipping = subtotal >= shippingThreshold;
@@ -455,7 +499,9 @@ export default function CheckoutPage() {
                 className={`payment-method-btn ${paymentMethod === 'applepay' ? 'active' : ''}`}
                 onClick={() => setPaymentMethod('applepay')}
               >
-                <span>🍎 CloudPay</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+                  <AppleLogo size={16} /> <GoogleLogo size={16} /> CloudPay
+                </span>
                 <span>Apple / Google</span>
               </button>
               <button
@@ -469,40 +515,136 @@ export default function CheckoutPage() {
             </div>
 
             {paymentMethod === 'card' && (
-              <div className="form-grid">
-                <div className="form-group full-width">
-                  <label className="form-label">Card Number</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="4242 •••• •••• 4242"
-                    required
-                    value={cardNumber}
-                    onChange={e => setCardNumber(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Expiry Date</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="MM / YY"
-                    required
-                    value={cardExpiry}
-                    onChange={e => setCardExpiry(e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">CVC / CVV</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="123"
-                    required
-                    value={cardCvc}
-                    onChange={e => setCardCvc(e.target.value)}
-                  />
-                </div>
+              <div style={{ marginTop: '1rem' }}>
+                {savedCards.filter(c => c.last4 !== 'Apple Wallet' && c.last4 !== 'PayPal Express').length > 0 && !useNewCard ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-dark)' }}>
+                        Choose Saved Card from Wallet:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseNewCard(true);
+                          setCardNumber('');
+                          setCardExpiry('');
+                          setCardCvc('');
+                        }}
+                        style={{ background: 'none', border: 'none', color: 'var(--pink-primary)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        + Use Another Card
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.8rem' }}>
+                      {savedCards
+                        .filter(c => c.last4 !== 'Apple Wallet' && c.last4 !== 'PayPal Express')
+                        .map((card) => {
+                          const isSelected = selectedSavedCardId === card.id;
+                          return (
+                            <div
+                              key={card.id}
+                              onClick={() => {
+                                playPop();
+                                setSelectedSavedCardId(card.id);
+                                setCardNumber(`•••• •••• •••• ${card.last4}`);
+                                setCardExpiry(card.exp);
+                                setCardCvc('•••');
+                              }}
+                              style={{
+                                padding: '0.85rem 1rem',
+                                borderRadius: '14px',
+                                border: isSelected ? '2px solid #F472B6' : '1px solid rgba(0,0,0,0.1)',
+                                background: isSelected ? 'rgba(244, 114, 182, 0.08)' : 'var(--white, #fff)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                <BrandIconRenderer brand={card.brand} icon={card.icon} size={22} />
+                                <div>
+                                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-dark)' }}>
+                                    {card.brand}
+                                  </div>
+                                  <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                    •••• {card.last4} • Exp {card.exp}
+                                  </div>
+                                </div>
+                              </div>
+                              {card.isDefault && (
+                                <span style={{ fontSize: '0.68rem', fontWeight: 800, background: '#F472B6', color: '#fff', padding: '0.1rem 0.45rem', borderRadius: '9999px' }}>
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {(useNewCard || savedCards.filter(c => c.last4 !== 'Apple Wallet' && c.last4 !== 'PayPal Express').length === 0) && (
+                  <div>
+                    {savedCards.filter(c => c.last4 !== 'Apple Wallet' && c.last4 !== 'PayPal Express').length > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.6rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUseNewCard(false);
+                            const def = savedCards.find(c => c.isDefault) || savedCards[0];
+                            if (def) {
+                              setSelectedSavedCardId(def.id);
+                              setCardNumber(`•••• •••• •••• ${def.last4}`);
+                              setCardExpiry(def.exp);
+                              setCardCvc('•••');
+                            }
+                          }}
+                          style={{ background: 'none', border: 'none', color: 'var(--pink-primary)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          ← Choose From Saved Cards
+                        </button>
+                      </div>
+                    )}
+                    <div className="form-grid">
+                      <div className="form-group full-width">
+                        <label className="form-label">Card Number</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="4242 •••• •••• 4242"
+                          required
+                          value={cardNumber}
+                          onChange={e => setCardNumber(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Expiry Date</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="MM / YY"
+                          required
+                          value={cardExpiry}
+                          onChange={e => setCardExpiry(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">CVC / CVV</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="123"
+                          required
+                          value={cardCvc}
+                          onChange={e => setCardCvc(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

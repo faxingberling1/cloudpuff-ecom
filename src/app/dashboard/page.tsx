@@ -12,6 +12,7 @@ import { useSound } from '@/context/SoundContext';
 import { useTheme } from '@/context/ThemeContext';
 import { PLUSHIES } from '@/data/plushies';
 import { confettiEngine } from '@/utils/confetti';
+import { SavedPaymentMethods } from '@/components/SavedPaymentMethods';
 
 interface OrderItem {
   id: string;
@@ -1283,66 +1284,7 @@ function DashboardInner() {
 
       <div className="preferences-grid-layout">
         {/* Card 1: Saved Payment Methods */}
-        <div className="dash-box preferences-card-box" id="preferences-wallet-section">
-          <div className="dash-box-header">
-            <div>
-              <span className="dash-box-pill">💳 Wallet</span>
-              <h3 className="dash-box-title">Saved Payment Methods</h3>
-            </div>
-            <button
-              type="button"
-              className="admin-action-btn-small"
-              onClick={() => {
-                playPop();
-                setIsAddCardOpen(true);
-              }}
-            >
-              + Add Card 💳
-            </button>
-          </div>
-
-          <p className="preferences-sub-desc">
-            Your payment credentials are encrypted using AES-256 cloud tokenization. We never store raw CVV numbers.
-          </p>
-
-          <div className="saved-cards-list">
-            {savedCards.map((card) => (
-              <div key={card.id} className={`payment-card-chip ${card.isDefault ? 'default-card' : ''}`}>
-                <div className="card-chip-top">
-                  <span className="card-chip-icon">{card.icon}</span>
-                  {card.isDefault && <span className="default-pill">★ Default Method</span>}
-                </div>
-
-                <div className="card-chip-brand">{card.brand}</div>
-                <div className="card-chip-number">•••• •••• •••• {card.last4}</div>
-
-                <div className="card-chip-bottom">
-                  <span className="card-exp">Expires: {card.exp}</span>
-                  <div className="card-actions-group">
-                    {!card.isDefault && (
-                      <button
-                        type="button"
-                        className="btn-card-action"
-                        onClick={() => handleSetDefaultCard(card.id)}
-                      >
-                        Set Default
-                      </button>
-                    )}
-                    {savedCards.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-card-action delete"
-                        onClick={() => handleDeleteCard(card.id)}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SavedPaymentMethods idPrefix="preferences" />
 
         {/* Card 2: Notification Preferences */}
         <div className="dash-box preferences-card-box" id="preferences-notifications-section">
@@ -1463,66 +1405,7 @@ function DashboardInner() {
 
       <div className="preferences-grid-layout">
         {/* Card 1: Saved Payment Methods */}
-        <div className="dash-box preferences-card-box" id="billing-wallet-section">
-          <div className="dash-box-header">
-            <div>
-              <span className="dash-box-pill">💳 Wallet</span>
-              <h3 className="dash-box-title">Saved Payment Methods</h3>
-            </div>
-            <button
-              type="button"
-              className="admin-action-btn-small"
-              onClick={() => {
-                playPop();
-                setIsAddCardOpen(true);
-              }}
-            >
-              + Add Card 💳
-            </button>
-          </div>
-
-          <p className="preferences-sub-desc">
-            Your payment credentials are encrypted using AES-256 cloud tokenization. We never store raw CVV numbers.
-          </p>
-
-          <div className="saved-cards-list">
-            {savedCards.map((card) => (
-              <div key={card.id} className={`payment-card-chip ${card.isDefault ? 'default-card' : ''}`}>
-                <div className="card-chip-top">
-                  <span className="card-chip-icon">{card.icon}</span>
-                  {card.isDefault && <span className="default-pill">★ Default Method</span>}
-                </div>
-
-                <div className="card-chip-brand">{card.brand}</div>
-                <div className="card-chip-number">•••• •••• •••• {card.last4}</div>
-
-                <div className="card-chip-bottom">
-                  <span className="card-exp">Expires: {card.exp}</span>
-                  <div className="card-actions-group">
-                    {!card.isDefault && (
-                      <button
-                        type="button"
-                        className="btn-card-action"
-                        onClick={() => handleSetDefaultCard(card.id)}
-                      >
-                        Set Default
-                      </button>
-                    )}
-                    {savedCards.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-card-action delete"
-                        onClick={() => handleDeleteCard(card.id)}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SavedPaymentMethods idPrefix="billing" />
 
         {/* Card 2: Billing Invoices & Receipts */}
         <div className="dash-box preferences-card-box" id="billing-archive-section">
@@ -2650,7 +2533,7 @@ function DashboardInner() {
                   className="subnav-tab-btn subnav-subitem"
                   onClick={() => {
                     playPop();
-                    setIsAddCardOpen(true);
+                    window.dispatchEvent(new CustomEvent('cloudpuff_open_add_card'));
                   }}
                 >
                   <span>+ Add Card 💳</span>
@@ -4156,98 +4039,6 @@ function DashboardInner() {
                 </div>
               </form>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Payment Method Modal */}
-      {isAddCardOpen && (
-        <div
-          className="modal-backdrop open"
-          onClick={() => setIsAddCardOpen(false)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="dashboard-modal-card add-card-modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="modal-close-btn"
-              onClick={() => setIsAddCardOpen(false)}
-              type="button"
-            >
-              ✕
-            </button>
-
-            <div className="two-factor-modal-header">
-              <span className="modal-top-pill">💳 Encrypted Wallet</span>
-              <h3 className="modal-title">Add Payment Card</h3>
-              <p className="modal-subtitle">
-                Add a credit or debit card for 1-click plushie adoptions and nursery supplies.
-              </p>
-            </div>
-
-            <form onSubmit={handleAddCardSubmit} className="modal-form">
-              <div className="form-field-group">
-                <label className="field-label">Card Number</label>
-                <input
-                  type="text"
-                  className="form-input font-mono"
-                  placeholder="4000 1234 5678 9010"
-                  maxLength={19}
-                  value={newCardNumber}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, '').slice(0, 16);
-                    const formatted = v.match(/.{1,4}/g)?.join(' ') || v;
-                    setNewCardNumber(formatted);
-                  }}
-                  required
-                />
-              </div>
-
-              <div className="form-grid-two">
-                <div className="form-field-group">
-                  <label className="field-label">Expiration (MM/YY)</label>
-                  <input
-                    type="text"
-                    className="form-input font-mono"
-                    placeholder="08/29"
-                    maxLength={5}
-                    value={newCardExp}
-                    onChange={(e) => {
-                      let v = e.target.value.replace(/\D/g, '').slice(0, 4);
-                      if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
-                      setNewCardExp(v);
-                    }}
-                    required
-                  />
-                </div>
-
-                <div className="form-field-group">
-                  <label className="field-label">CVC / Security Code</label>
-                  <input
-                    type="password"
-                    className="form-input font-mono"
-                    placeholder="•••"
-                    maxLength={4}
-                    value={newCardCvc}
-                    onChange={(e) => setNewCardCvc(e.target.value.replace(/\D/g, ''))}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="modal-actions-row">
-                <button type="submit" className="btn-primary">
-                  Save Card Securely 💳
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setIsAddCardOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
